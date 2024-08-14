@@ -1,0 +1,80 @@
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+
+#add code to bring in data here if needed
+my_data<-read.csv('Depoe Bay 2020_COMU Diet2.csv')
+
+head(my_data)
+str(my_data)
+
+my_data$Date<-dmy(my_data$Date)
+my_data$Fish.Bill[my_data$Fish.Bill==0]<-NA
+
+
+ggplot()+
+  geom_histogram(data=my_data %>% filter(Fish.Bill>0),
+                 aes(x=Fish.Bill),binwidth=.5)+
+  #xlab("Fish Size (relative to bill length)")+
+  facet_wrap(~Colony+Yr)+
+  theme_bw()
+
+#boxplot by colony
+ggplot()+
+  geom_boxplot(data=my_data %>% filter(Fish.Bill>0),
+                 aes(y=Fish.Bill,fill=Colony,group=Colony))+
+  #xlab("Fish Size (relative to bill length)")+
+  theme_bw()
+
+# boxplot by colony -------------------------------------------------------
+
+
+#summary by colony & year
+my_data %>% filter(Fish.Bill>0) %>% 
+  group_by(Colony,Yr) %>%
+  summarise(n=n(),
+            uFB_length=mean(Fish.Bill),
+            sdFB_length=sd(Fish.Bill))
+
+# this file path works for RAO, but plot is not the same as final verion on poster...
+diet<- read.csv(file = "Depoe Bay 2020_COMU Diet2.csv")
+
+diet$ID_oth<-diet$TRUE_ID
+diet$ID_oth[diet$TRUE_ID=="anarhichadidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="atherinidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="bothidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="cottidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="crustacea"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="embiotocidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="gadidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="hexagrammidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="loligo"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="scomberesocidae"]<-"other"
+diet$ID_oth[diet$TRUE_ID=="engraulididae"]<-"other"
+
+
+smple_sze<-diet%>%group_by(Yr)%>%summarise(n=n())
+smple_sze<-diet%>%filter(ID_oth!="unidentified")%>%
+  group_by(Yr)%>%summarise(n=n())
+
+
+diet$Yr<-as.factor(diet$Yr)
+diet %>%
+  filter(year %in% c("2011", "2012", "2013", "2014", "2015","2016", "2017",
+                     "2018", "2019", "2020", "2021")) %>%
+  filter(TRUE_ID %in% c("ammodytes", "clupeidae", "osmeridae",
+                        "pleuronectiformes", "salmonidae", "sebastes"))%>%
+  filter(TRUE_ID_CERTAINTY %in% c("50", "75", "100")) %>%
+  drop_na(ID_oth)%>%
+  ggplot(aes(x=year))+
+  geom_bar(aes(fill=ID_oth),position = "fill")+
+  scale_fill_manual(values = met.brewer("Hokusai3", 6))+
+  theme(text = element_text(size=16))+
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        axis.text.x = element_text(angle = 30))+
+  labs(x= " ",
+       y= " ")+
+  guides(fill = guide_legend(title = "Species"))
+
+#ggsave(paste0(ursdir,"/03_plots/StackedDiet_proportion.png"))
